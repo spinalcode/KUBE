@@ -1,5 +1,5 @@
 // KUBE
-// Version 2.00
+// Version 1.00
 // May 15th 24 - May 27th 24
 // Matthew Bryan
 
@@ -49,6 +49,7 @@ bool touchdown;
 bool land = true;
 bool spike;
 bool press;
+bool heal;
 
 int anim3;
 int anim4;
@@ -153,7 +154,7 @@ if(!start && !dead && !win)
     if (arduboy.pressed(A_BUTTON))
     {
       start = true;
-      if (soundOn){sound.tones(landTune);}
+      if (soundOn){sound.tones(startTune);}
       arduboy.delayShort(500);
       newGame();
     }
@@ -161,7 +162,7 @@ if(!start && !dead && !win)
     if (arduboy.pressed(B_BUTTON))
     {
       start = true;
-      if (soundOn){sound.tones(landTune);}
+      if (soundOn){sound.tones(startTune);}
       arduboy.delayShort(500);
       newGame();
     }
@@ -179,10 +180,7 @@ if(!start && !dead && !win)
   {
     winPause--;
 
-    arduboy.setCursor(20,20);
-    arduboy.print("you escaped");
-    arduboy.setCursor(30,30);
-    arduboy.print("the KUBE");
+    Sprites::drawOverwrite(48, 20, rainbowS1, frameNumber);
 
     render();
 
@@ -241,14 +239,35 @@ void render()
 
     Sprites::drawOverwrite(24, -1, background1, frameNumber);
 
-    if (roomNo == 2){Sprites::drawExternalMask(76, 13, windowR1, windowRMask, frameNumber, 0);}
-    if (roomNo == 6){Sprites::drawExternalMask(36, 13, window1, windowMask, frameNumber, 0);}
-    if (roomNo == 9){Sprites::drawExternalMask(76, 13, windowR1, windowRMask, frameNumber, 0);}
-    if (roomNo == 15){Sprites::drawExternalMask(76, 13, windowR1, windowRMask, frameNumber, 0);}
-    if (roomNo == 16){Sprites::drawExternalMask(36, 13, window1, windowMask, frameNumber, 0);}
-    if (roomNo == 18){Sprites::drawExternalMask(36, 13, window1, windowMask, frameNumber, 0);Sprites::drawExternalMask(76, 13, windowR1, windowRMask, frameNumber, 0);}
-    if (roomNo == 19){Sprites::drawExternalMask(36, 13, window1, windowMask, frameNumber, 0);}
-    if (roomNo == 20){Sprites::drawExternalMask(36, 13, window1, windowMask, frameNumber, 0);}
+    switch(roomNo){
+      case 2:
+        Sprites::drawExternalMask(76, 13, windowR1, windowRMask, frameNumber, 0);
+        break;
+      case 6:
+        Sprites::drawExternalMask(36, 13, window1, windowMask, frameNumber, 0);
+        break;
+      case 9:
+        Sprites::drawExternalMask(76, 13, windowR1, windowRMask, frameNumber, 0);
+        break;
+      case 15:
+        Sprites::drawExternalMask(76, 13, windowR1, windowRMask, frameNumber, 0);
+        break;
+      case 16:
+        Sprites::drawExternalMask(36, 13, window1, windowMask, frameNumber, 0);
+        break;
+      case 18:
+        Sprites::drawExternalMask(36, 13, window1, windowMask, frameNumber, 0);
+        Sprites::drawExternalMask(76, 13, windowR1, windowRMask, frameNumber, 0);
+        break;
+      case 19:
+        Sprites::drawExternalMask(36, 13, window1, windowMask, frameNumber, 0);
+        break;
+      case 20:
+        Sprites::drawExternalMask(36, 13, window1, windowMask, frameNumber, 0);
+        break;
+      default:
+        break;
+    }
 
     fillBackground();
 
@@ -342,186 +361,117 @@ void calcBug()
     }
   }
 
-  int xCalc = bugDetX/10; // drawOrder calculation matrix
-  int yCalc = bugDetY/10;
-  if (xCalc==0&&yCalc==0){bugDrawOrder=0;}if(xCalc==0&&yCalc==1){bugDrawOrder=1;}
-  if (xCalc==1&&yCalc==0){bugDrawOrder=2;}if(xCalc==0&&yCalc==2){bugDrawOrder=3;}
-  if (xCalc==1&&yCalc==1){bugDrawOrder=4;}if(xCalc==2&&yCalc==0){bugDrawOrder=5;}
-  if (xCalc==0&&yCalc==3){bugDrawOrder=6;}if(xCalc==1&&yCalc==2){bugDrawOrder=7;}
-  if (xCalc==2&&yCalc==1){bugDrawOrder=8;}if(xCalc==3&&yCalc==0){bugDrawOrder=9;}
-  if (xCalc==0&&yCalc==4){bugDrawOrder=10;}if(xCalc==1&&yCalc==3){bugDrawOrder=11;}
-  if (xCalc==2&&yCalc==2){bugDrawOrder=12;}if(xCalc==3&&yCalc==1){bugDrawOrder=13;}
-  if (xCalc==4&&yCalc==0){bugDrawOrder=14;}if(xCalc==1&&yCalc==4){bugDrawOrder=15;}
-  if (xCalc==2&&yCalc==3){bugDrawOrder=16;}if(xCalc==3&&yCalc==2){bugDrawOrder=17;}
-  if (xCalc==4&&yCalc==1){bugDrawOrder=18;}if(xCalc==2&&yCalc==4){bugDrawOrder=19;}
-  if (xCalc==3&&yCalc==3){bugDrawOrder=20;}if(xCalc==4&&yCalc==2){bugDrawOrder=21;}
-  if (xCalc==3&&yCalc==4){bugDrawOrder=22;}if(xCalc==4&&yCalc==3){bugDrawOrder=23;}
-  if(xCalc==4&&yCalc==4){bugDrawOrder=24;}
+  int bugDrawOrderMatrix[5][5] = {
+    {0, 1, 3, 6, 10},
+    {2, 4, 7, 11, 15},
+    {5, 8, 12, 16, 19},
+    {9, 13, 17, 20, 22},
+    {14, 18, 21, 23, 24}
+  };
+  
+  int xCalc = bugDetX / 10;
+  int yCalc = bugDetY / 10;
+  
+  bugDrawOrder = bugDrawOrderMatrix[xCalc][yCalc];
+
 }
 
-void portal() // LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL
+void portal()
 {
-  int xCalc = detectX/10;
-  int yCalc = detectY/10;
+  int xCalc = detectX / 10;
+  int yCalc = detectY / 10;
 
-  if (portTimer == 0){portTimer = 100;}
+  if (portTimer == 0) {
+    portTimer = 100;
+  }
 
-  if (portTimer > 0){port=true;}
+  if (portTimer > 0) {
+    port = true;
+  }
 
-  if (portTimer == 50)
-  {
-    if (roomNo==1&&(port))
-    {
-      port = false;
-      newRoomNo = 2;
-      flipRoom();
-    }
-    if (roomNo==2&&(port))
-    {
-      port = false;
-      newRoomNo = 3;
-      flipRoom();
-    }
-    if (roomNo==3&&(port))
-    {
-      port = false;
-      newRoomNo = 4;
-      flipRoom();
-    }
-    if (roomNo==4&&(port))
-    {
-      port = false;
-      newRoomNo = 5;
-      flipRoom();
-    }
-    if (roomNo==5&&(port))
-    {
-      port = false;
-      newRoomNo = 6;
-      flipRoom();
-    }
-    if (roomNo==6&&(port))
-    {
-      port = false;
-      newRoomNo = 7;
-      flipRoom();
-    }
-    if (roomNo==7&&(port))
-    {
-      port = false;
-      newRoomNo = 8;
-      flipRoom();
-    }
-    if (roomNo==8&&(port))
-    {
-      port = false;
-      newRoomNo = 9;
-      flipRoom();
-    }
-    if (roomNo==9&&(port))
-    {
-      port = false;
-      if (xCalc == 1 && yCalc ==3) // Multiple ports
-      {
-        newRoomNo = 14;
-      }      
-      if (xCalc == 4 && yCalc ==1)
-      {
-        newRoomNo = 10;
-      }
-      flipRoom();
-    }
-    if (roomNo==10&&(port))
-    {
-      port = false;
-      newRoomNo = 11;
-      flipRoom();
-    }
-    if (roomNo==11&&(port))
-    {
-      port = false;
-      newRoomNo = 12;
-      flipRoom();
-    }
-    if (roomNo==12&&(port))
-    {
-      port = false;
-      newRoomNo = 13;
-      flipRoom();
-    }
-    if (roomNo==13&&(port))
-    {
-      port = false;
-      newRoomNo = 17;
-      flipRoom();
-    }
-    if (roomNo==14&&(port))
-    {
-      port = false;
+  if (portTimer == 50 && port) {
+    port = false;
 
-      if (xCalc == 4 && yCalc == 3)
-      {
-        newRoomNo = 15;
-      }
-      else
-      {
-        newRoomNo = 16;
-      }
-
-      flipRoom();
-    }
-    if (roomNo==15&&(port))
-    {
-      port = false;
-      newRoomNo = 13;
-      flipRoom();
-    }
-    if (roomNo==16&&(port))
-    {
-      port = false;
-      newRoomNo = 14;
-      flipRoom();
-    }
-    if (roomNo==17&&(port))
-    {
-      port = false;
-      newRoomNo = 18;
-      flipRoom();
-    }
-    if (roomNo==18&&(port))
-    {
-      port = false;
-      if (xCalc == 0 && yCalc == 4)
-      {
+    switch (roomNo) {
+      case 1:
+        newRoomNo = 2;
+        break;
+      case 2:
+        newRoomNo = 3;
+        break;
+      case 3:
+        newRoomNo = 4;
+        break;
+      case 4:
+        newRoomNo = 5;
+        break;
+      case 5:
+        newRoomNo = 6;
+        break;
+      case 6:
         newRoomNo = 7;
-      }
-      else
-      {
-        newRoomNo = 19;
-      }
-      flipRoom();
+        break;
+      case 7:
+        newRoomNo = 8;
+        break;
+      case 8:
+        newRoomNo = 9;
+        break;
+      case 9:
+        if (xCalc == 1 && yCalc == 3) {
+            newRoomNo = 14;
+        } else if (xCalc == 4 && yCalc == 1) {
+            newRoomNo = 10;
+        }
+        break;
+      case 10:
+        newRoomNo = 11;
+        break;
+      case 11:
+        newRoomNo = 12;
+        break;
+      case 12:
+        newRoomNo = 13;
+        break;
+      case 13:
+        newRoomNo = 17;
+        break;
+      case 14:
+        if (xCalc == 4 && yCalc == 3) {
+            newRoomNo = 15;
+        } else {
+            newRoomNo = 16;
+        }
+        break;
+      case 15:
+        newRoomNo = 13;
+        break;
+      case 16:
+        newRoomNo = 14;
+        break;
+      case 17:
+        newRoomNo = 18;
+        break;
+      case 18:
+        if (xCalc == 0 && yCalc == 4) {
+            newRoomNo = 7;
+        } else {
+            newRoomNo = 19;
+        }
+        break;
+      case 19:
+        newRoomNo = 20;
+        break;
+      case 20:
+        if (xCalc == 0 && yCalc == 1) {
+            newRoomNo = 1;
+        } else {
+            newRoomNo = 99;
+        }
+        break;
     }
-    if (roomNo==19&&(port))
-    {
-      port = false;
-      newRoomNo = 20;
-      flipRoom();
-    }
-    if (roomNo==20&&(port))
-    {
-      port = false;
 
-      if (xCalc == 0 && yCalc == 1)
-      {
-        newRoomNo = 1;
-      }
-      else
-      {
-        newRoomNo = 99;
-      }
-
-      flipRoom();
-    }
+    flipRoom();
   }
 }
 
@@ -533,13 +483,18 @@ void calcRoom()
 
   if (bugExist == 0)
   {
-    if (roomNo==2){spawnBug();}
-    if (roomNo==5){spawnBug();}
-    if (roomNo==8){spawnBug();}
-    if (roomNo==11){spawnBug();}
-    if (roomNo==12){spawnBug();}
-    if (roomNo==15){spawnBug();}
-    if (roomNo==19){spawnBug();}
+    switch(roomNo){
+      case 2:
+      case 5:
+      case 8:
+      case 11:
+      case 12:
+      case 15:
+      case 19:
+        spawnBug();
+      default:
+      break;
+    }
   }
 }
 
@@ -648,309 +603,45 @@ void flipRoom()
 {
   bugExist = 0;
   Zvel = 3;
-  
+
   arduboy.clear();
-  int roomRead = 0;
-  int test = 0;
-  int type = 0;
 
-  for (int x = 0; 5 > x; x++)
-  {
-    for (int y = 0; 5 > y; y++)
-    {
-      xy1[x][y] = 0;
-      xy2[x][y] = 0;
-      xy3[x][y] = 0;
-    }
-  }
-  for (int i = 0; 75 > i;i++)
-  {
-    screen[i] = 0;
+  // Initialize arrays
+  memset(xy1, 0, sizeof(xy1));
+  memset(xy2, 0, sizeof(xy2));
+  memset(xy3, 0, sizeof(xy3));
+  memset(screen, 0, sizeof(screen));
+
+  if (newRoomNo == 99) {
+    victory();
+    return;
   }
 
-  if (newRoomNo == 99){victory();}
+  roomNo = newRoomNo;
 
-  if (newRoomNo == 1)
-  {
-    roomNo = 1;
-    for (int i = 0; 75 > i; i ++)
-    {
-      test = pgm_read_byte(&roomType1[roomRead]);
-      type = pgm_read_byte(&roomType1[roomRead+1]);
-      if (test == i)
-      {
+  // Array of roomType pointers
+  const uint8_t* roomTypes[] = {
+    roomType1, roomType2, roomType3, roomType4, roomType5,
+    roomType6, roomType7, roomType8, roomType9, roomType10,
+    roomType11, roomType12, roomType13, roomType14, roomType15,
+    roomType16, roomType17, roomType18, roomType19, roomType20
+  };
+
+  if (newRoomNo >= 1 && newRoomNo <= 20) {
+    // Adjust for zero-based index
+    const uint8_t* roomTypePtr = roomTypes[newRoomNo - 1];
+    int roomRead = 0;
+    
+    for (int i = 0; i < 75; ++i) {
+      int test = pgm_read_byte(&roomTypePtr[roomRead]);
+      int type = pgm_read_byte(&roomTypePtr[roomRead + 1]);
+      if (test == i) {
         screen[i] = type;
-        roomRead = roomRead + 2;
+        roomRead += 2;
       }
     }
   }
-  if (newRoomNo == 2)
-  {
-    roomNo = 2;
-    for (int i = 0; 75 > i; i ++)
-    {
-      test = pgm_read_byte(&roomType2[roomRead]);
-      type = pgm_read_byte(&roomType2[roomRead+1]);
-      if (test == i)
-      {
-        screen[i] = type;
-        roomRead = roomRead + 2;
-      }
-    }
-  }
-  if (newRoomNo == 3)
-  {
-    roomNo = 3;
-    for (int i = 0; 75 > i; i ++)
-    {
-      test = pgm_read_byte(&roomType3[roomRead]);
-      type = pgm_read_byte(&roomType3[roomRead+1]);
-      if (test == i)
-      {
-        screen[i] = type;
-        roomRead = roomRead + 2;
-      }
-    }
-  }
-  if (newRoomNo == 4)
-  {
-    roomNo = 4;
-    for (int i = 0; 75 > i; i ++)
-    {
-      test = pgm_read_byte(&roomType4[roomRead]);
-      type = pgm_read_byte(&roomType4[roomRead+1]);
-      if (test == i)
-      {
-        screen[i] = type;
-        roomRead = roomRead + 2;
-      }
-    }
-  }
-  if (newRoomNo == 5)
-  {
-    roomNo = 5;
-    for (int i = 0; 75 > i; i ++)
-    {
-      test = pgm_read_byte(&roomType5[roomRead]);
-      type = pgm_read_byte(&roomType5[roomRead+1]);
-      if (test == i)
-      {
-        screen[i] = type;
-        roomRead = roomRead + 2;
-      }
-    }
-  }
-  if (newRoomNo == 6)
-  {
-    roomNo = 6;
-    for (int i = 0; 75 > i; i ++)
-    {
-      test = pgm_read_byte(&roomType6[roomRead]);
-      type = pgm_read_byte(&roomType6[roomRead+1]);
-      if (test == i)
-      {
-        screen[i] = type;
-        roomRead = roomRead + 2;
-      }
-    }
-  }
-  if (newRoomNo == 7)
-  {
-    roomNo = 7;
-    for (int i = 0; 75 > i; i ++)
-    {
-      test = pgm_read_byte(&roomType7[roomRead]);
-      type = pgm_read_byte(&roomType7[roomRead+1]);
-      if (test == i)
-      {
-        screen[i] = type;
-        roomRead = roomRead + 2;
-      }
-    }
-  }
-  if (newRoomNo == 8)
-  {
-    roomNo = 8;
-    for (int i = 0; 75 > i; i ++)
-    {
-      test = pgm_read_byte(&roomType8[roomRead]);
-      type = pgm_read_byte(&roomType8[roomRead+1]);
-      if (test == i)
-      {
-        screen[i] = type;
-        roomRead = roomRead + 2;
-      }
-    }
-  }
-  if (newRoomNo == 9)
-  {
-    roomNo = 9;
-    for (int i = 0; 75 > i; i ++)
-    {
-      test = pgm_read_byte(&roomType9[roomRead]);
-      type = pgm_read_byte(&roomType9[roomRead+1]);
-      if (test == i)
-      {
-        screen[i] = type;
-        roomRead = roomRead + 2;
-      }
-    }
-  }
-  if (newRoomNo == 10)
-  {
-    roomNo = 10;
-    for (int i = 0; 75 > i; i ++)
-    {
-      test = pgm_read_byte(&roomType10[roomRead]);
-      type = pgm_read_byte(&roomType10[roomRead+1]);
-      if (test == i)
-      {
-        screen[i] = type;
-        roomRead = roomRead + 2;
-      }
-    }
-  }
-  if (newRoomNo == 11)
-  {
-    roomNo = 11;
-    for (int i = 0; 75 > i; i ++)
-    {
-      test = pgm_read_byte(&roomType11[roomRead]);
-      type = pgm_read_byte(&roomType11[roomRead+1]);
-      if (test == i)
-      {
-        screen[i] = type;
-        roomRead = roomRead + 2;
-      }
-    }
-  }
-  if (newRoomNo == 12)
-  {
-    roomNo = 12;
-    for (int i = 0; 75 > i; i ++)
-    {
-      test = pgm_read_byte(&roomType12[roomRead]);
-      type = pgm_read_byte(&roomType12[roomRead+1]);
-      if (test == i)
-      {
-        screen[i] = type;
-        roomRead = roomRead + 2;
-      }
-    }
-  }
-  if (newRoomNo == 13)
-  {
-    roomNo = 13;
-    for (int i = 0; 75 > i; i ++)
-    {
-      test = pgm_read_byte(&roomType13[roomRead]);
-      type = pgm_read_byte(&roomType13[roomRead+1]);
-      if (test == i)
-      {
-        screen[i] = type;
-        roomRead = roomRead + 2;
-      }
-    }
-  }
-  if (newRoomNo == 14)
-  {
-    roomNo = 14;
-    for (int i = 0; 75 > i; i ++)
-    {
-      test = pgm_read_byte(&roomType14[roomRead]);
-      type = pgm_read_byte(&roomType14[roomRead+1]);
-      if (test == i)
-      {
-        screen[i] = type;
-        roomRead = roomRead + 2;
-      }
-    }
-  }
-  if (newRoomNo == 15)
-  {
-    roomNo = 15;
-    for (int i = 0; 75 > i; i ++)
-    {
-      test = pgm_read_byte(&roomType15[roomRead]);
-      type = pgm_read_byte(&roomType15[roomRead+1]);
-      if (test == i)
-      {
-        screen[i] = type;
-        roomRead = roomRead + 2;
-      }
-    }
-  }
-  if (newRoomNo == 16)
-  {
-    roomNo = 16;
-    for (int i = 0; 75 > i; i ++)
-    {
-      test = pgm_read_byte(&roomType16[roomRead]);
-      type = pgm_read_byte(&roomType16[roomRead+1]);
-      if (test == i)
-      {
-        screen[i] = type;
-        roomRead = roomRead + 2;
-      }
-    }
-  }
-  if (newRoomNo == 17)
-  {
-    roomNo = 17;
-    for (int i = 0; 75 > i; i ++)
-    {
-      test = pgm_read_byte(&roomType17[roomRead]);
-      type = pgm_read_byte(&roomType17[roomRead+1]);
-      if (test == i)
-      {
-        screen[i] = type;
-        roomRead = roomRead + 2;
-      }
-    }
-  }
-  if (newRoomNo == 18)
-  {
-    roomNo = 18;
-    for (int i = 0; 75 > i; i ++)
-    {
-      test = pgm_read_byte(&roomType18[roomRead]);
-      type = pgm_read_byte(&roomType18[roomRead+1]);
-      if (test == i)
-      {
-        screen[i] = type;
-        roomRead = roomRead + 2;
-      }
-    }
-  }
-  if (newRoomNo == 19)
-  {
-    roomNo = 19;
-    for (int i = 0; 75 > i; i ++)
-    {
-      test = pgm_read_byte(&roomType19[roomRead]);
-      type = pgm_read_byte(&roomType19[roomRead+1]);
-      if (test == i)
-      {
-        screen[i] = type;
-        roomRead = roomRead + 2;
-      }
-    }
-  }
-  if (newRoomNo == 20)
-  {
-    roomNo = 20;
-    for (int i = 0; 75 > i; i ++)
-    {
-      test = pgm_read_byte(&roomType20[roomRead]);
-      type = pgm_read_byte(&roomType20[roomRead+1]);
-      if (test == i)
-      {
-        screen[i] = type;
-        roomRead = roomRead + 2;
-      }
-    }
-  }
-} // LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL
+}
 
 void newGame()
 {
@@ -959,21 +650,19 @@ void newGame()
 
 void calcPlayer()
 {
-  int xCalc = detectX/10; // drawOrder calculation matrix
-  int yCalc = detectY/10;
-  if (xCalc==0&&yCalc==0){drawOrder=0;}if(xCalc==0&&yCalc==1){drawOrder=1;}
-  if (xCalc==1&&yCalc==0){drawOrder=2;}if(xCalc==0&&yCalc==2){drawOrder=3;}
-  if (xCalc==1&&yCalc==1){drawOrder=4;}if(xCalc==2&&yCalc==0){drawOrder=5;}
-  if (xCalc==0&&yCalc==3){drawOrder=6;}if(xCalc==1&&yCalc==2){drawOrder=7;}
-  if (xCalc==2&&yCalc==1){drawOrder=8;}if(xCalc==3&&yCalc==0){drawOrder=9;}
-  if (xCalc==0&&yCalc==4){drawOrder=10;}if(xCalc==1&&yCalc==3){drawOrder=11;}
-  if (xCalc==2&&yCalc==2){drawOrder=12;}if(xCalc==3&&yCalc==1){drawOrder=13;}
-  if (xCalc==4&&yCalc==0){drawOrder=14;}if(xCalc==1&&yCalc==4){drawOrder=15;}
-  if (xCalc==2&&yCalc==3){drawOrder=16;}if(xCalc==3&&yCalc==2){drawOrder=17;}
-  if (xCalc==4&&yCalc==1){drawOrder=18;}if(xCalc==2&&yCalc==4){drawOrder=19;}
-  if (xCalc==3&&yCalc==3){drawOrder=20;}if(xCalc==4&&yCalc==2){drawOrder=21;}
-  if (xCalc==3&&yCalc==4){drawOrder=22;}if(xCalc==4&&yCalc==3){drawOrder=23;}
-  if(xCalc==4&&yCalc==4){drawOrder=24;}
+  int drawOrderMatrix[5][5] = {
+    {0, 1, 3, 6, 10},
+    {2, 4, 7, 11, 15},
+    {5, 8, 12, 16, 19},
+    {9, 13, 17, 20, 22},
+    {14, 18, 21, 23, 24}
+  };
+  
+  int xCalc = detectX / 10;
+  int yCalc = detectY / 10;
+  
+  drawOrder = drawOrderMatrix[xCalc][yCalc];
+
 
   // if level 2 drawOrder + 25, if level 3 drawOrder + 50
   if (playerZ > 19 && playerZ < 40)
@@ -1013,6 +702,8 @@ void calcPlayer()
 
     if (xy1[detectX/10][(detectY)/10]==4){press=true;}else{press=false;}
 
+    if (xy1[detectX/10][(detectY)/10]==5){heal=true;}else{heal=false;}
+
     spike=false;
     if (xy1[detectX/10][(detectY)/10]==3){spike=true;}
   }
@@ -1034,6 +725,8 @@ void calcPlayer()
 
     if (xy2[detectX/10][(detectY)/10]==4){press=true;}else{press=false;}
 
+    if (xy1[detectX/10][(detectY)/10]==5){heal=true;}else{heal=false;}
+
     spike=false;
     if (xy2[detectX/10][(detectY)/10]==3){spike=true;}
   }
@@ -1050,6 +743,8 @@ void calcPlayer()
 
     if (xy3[detectX/10][(detectY)/10]==4){press=true;}else{press=false;}
 
+    if (xy3[detectX/10][(detectY)/10]==5){heal=true;}else{heal=false;}
+
     spike=false;
     if (xy3[detectX/10][(detectY)/10]==3){spike=true;}
   }
@@ -1059,6 +754,7 @@ void calcPlayer()
     port=false;
     spike=false;
     press=false;
+    heal=false;
   }
 
   pX = playerX/3; // distance conversion
@@ -1084,6 +780,8 @@ void calcPlayer()
 
   if (deathTimer > 1){deathTimer--;}
   if (deathTimer == 1){gameOver();}
+
+  if (heal&&playerLife<100){playerLife++; if(soundOn){sound.tones(healTune);}}
 }
 
 void gameOver()
@@ -1334,6 +1032,10 @@ void fillBackground()
       {
         Sprites::drawExternalMask(xDraw, yDraw, button1, buttonMask, frameNumber, 0);
       }
+      if (screen[i] == 5)
+      {
+        Sprites::drawExternalMask(xDraw, yDraw, healS1, healSMask, frameNumber, 0);
+      }
       if (screen[i] == 6)
       {
         Sprites::drawExternalMask(xDraw, yDraw, heal1, healMask, frameNumber, 0);
@@ -1401,6 +1103,10 @@ void fillBackground()
       {
         Sprites::drawExternalMask(xDraw, yDraw, button1, buttonMask, frameNumber, 0);
       }
+      if (screen[i] == 5)
+      {
+        Sprites::drawExternalMask(xDraw, yDraw, healS1, healSMask, frameNumber, 0);
+      }
       if (screen[i] == 6)
       {
         Sprites::drawExternalMask(xDraw, yDraw, heal1, healMask, frameNumber, 0);
@@ -1466,6 +1172,10 @@ void fillBackground()
       if (screen[i] == 4)
       {
         Sprites::drawExternalMask(xDraw, yDraw, button1, buttonMask, frameNumber, 0);
+      }
+      if (screen[i] == 5)
+      {
+        Sprites::drawExternalMask(xDraw, yDraw, healS1, healSMask, frameNumber, 0);
       }
       if (screen[i] == 6)
       {
